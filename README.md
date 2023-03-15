@@ -1,4 +1,4 @@
-English | [Português](readme.pt.md)
+English | [Português](README.pt.md)
 
 ## Personal Content Assistant with Artificial Intelligence
 
