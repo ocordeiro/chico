@@ -16,15 +16,15 @@ Consulta de Conteúdo: O aplicativo possibilita a realização de perguntas sobr
 
 ### Roadmap de Recursos
 
-Extração de conteúdo de arquivos de texto: O aplicativo será capaz de ler e extrair informações de arquivos de texto (por exemplo, PDF, TXT, DOCX) em sua biblioteca pessoal.
-Busca contextual de conteúdo: O aplicativo implementará algoritmos avançados de busca para localizar informações relevantes no conteúdo aprendido.
-Resposta a perguntas sobre o conteúdo: O aplicativo responderá às perguntas dos usuários com base no conhecimento adquirido a partir da biblioteca pessoal de conteúdo.
-Interface gráfica: O aplicativo apresentará uma interface gráfica intuitiva e fácil de usar, desenvolvida com o framework Wails.
+- Extração de conteúdo de arquivos de texto: O aplicativo será capaz de ler e extrair informações de arquivos de texto (por exemplo, PDF, TXT, DOCX) em sua biblioteca pessoal.
+- Busca contextual de conteúdo: O aplicativo implementará algoritmos avançados de busca para localizar informações relevantes no conteúdo aprendido.
+- Resposta a perguntas sobre o conteúdo: O aplicativo responderá às perguntas dos usuários com base no conhecimento adquirido a partir da biblioteca pessoal de conteúdo.
+- Interface gráfica: O aplicativo apresentará uma interface gráfica intuitiva e fácil de usar, desenvolvida com o framework Wails.
 
 ## Tecnologias Utilizadas
 
-ggml.cpp: Biblioteca Tensor para aprendizado de máquina.
-GPT2 (Word Embeddings): Utilizado para indexação baseada em contexto.
-Pinecone: Banco de dados de vetores para pesquisa contextual.
-LLaMA: IA do Facebook LLaMA para geração de respostas às perguntas dos usuários.
-Wails: Framework para desenvolvimento da interface gráfica do aplicativo.
+- ggml.cpp: Biblioteca Tensor para aprendizado de máquina.
+- GPT2 (Word Embeddings): Utilizado para indexação baseada em contexto.
+- Pinecone: Banco de dados de vetores para pesquisa contextual.
+- LLaMA: IA do Facebook LLaMA para geração de respostas às perguntas dos usuários.
+- Wails: Framework para desenvolvimento da interface gráfica do aplicativo.
