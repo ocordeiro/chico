@@ -2,3 +2,4 @@
 libgpt.so
 ggml.o
 wte/*.bin
+vector.db

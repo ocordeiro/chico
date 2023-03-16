@@ -30,6 +30,6 @@ go run main.go
 ### Technologies Used
 - ggml.cpp: Tensor Library for machine learning.
 - GPT2 (Word Embeddings): Used for context-based indexing.
-- Pinecone: Vector database for contextual search.
+- Sqlite3 vss: Sqlite3 with vector extension for contextual search.
 - LLaMA: Facebook LLaMA AI for generating answers to user questions.
 - Wails: Framework for developing the application's graphical interface.
