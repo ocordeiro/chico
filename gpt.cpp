@@ -25,8 +25,7 @@ struct gpt2_hparams {
 };
 
 struct gpt2_layer {
-    // normalization
-    
+    // normalization   
 };
 
 struct gpt2_model {
@@ -261,36 +260,6 @@ bool gpt2_model_load(const std::string & fname, gpt2_model & model, gpt_vocab & 
     return true;
 }
 
-void print_embd(const ggml_tensor * inpL, const int n_embd, GoCallback callback) {
-    
-    printf("wte = [");
-
-    // print all
-    //for (int i = 0; i < n_embd; ++i) { 
-    //    printf("%f, ", ((float *)inpL->data)[i]);
-    //}
-
-    //callback((char *)"Emebdding: [");
-
-    // print first 4 
-    for (int i = 0; i < 4; ++i) {
-        printf("%f, ", ((float *)inpL->data)[i]);
-    }
-
-    printf(" ... ");
-
-    // print last 4
-    for (int i = n_embd-4; i < n_embd; ++i) {
-        printf("%f", ((float *)inpL->data)[i]);
-        if (i < n_embd-1) {
-            printf(", ");
-        }
-    }
-
-    printf("]\n");
-}
-
-
 // evaluate the transformer
 //
 //   - model:     the model
@@ -349,14 +318,9 @@ bool gpt2_eval(
     ggml_build_forward_expand(&gf, inpL);
     ggml_graph_compute       (ctx0, &gf);
 
-    
-    print_embd(inpL, n_embd, callback);
-
     auto embeddings = (float *)inpL->data;
 
-
-    callback(embeddings);
-
+    callback(embeddings, n_embd);
 
     if (mem_per_token == 0) {
         mem_per_token = ggml_used_mem(ctx0)/N;
@@ -420,7 +384,6 @@ std::vector<float> proccess_text(std::string text, GoCallback callback) {
     return {};
 }
 
-
 extern "C" {
 
     void get_embeddings(char *text, GoCallback callback) {
@@ -430,8 +393,6 @@ extern "C" {
                 return;
             }
         }
-
-        //callback((char *)"Starting...");
 
         proccess_text(text, callback);
     }

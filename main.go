@@ -9,11 +9,11 @@ import (
 )
 
 //export goCallback
-func goCallback(output *C.float) {
+func goCallback(embeddings *C.float, size C.int) {
 
-	floatArr := (*[1 << 30]float32)(unsafe.Pointer(output))[:10]
+	floatArr := (*[1 << 30]float32)(unsafe.Pointer(embeddings))[0:int(size)]
 
-	for i := 0; i < int(10); i++ {
+	for i := 0; i < int(size); i++ {
 		fmt.Println(floatArr[i])
 	}
 }
