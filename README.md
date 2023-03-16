@@ -8,8 +8,18 @@ A fully offline desktop application designed to learn from your personal library
 ### Operation
 The Assistant is composed of two main parts:
 
-Content Learning: The application extracts information from text files in your personal library and employs advanced Natural Language Processing (NLP) techniques to learn and store relevant information, all offline.
-Content Query: The application allows for asking questions about the learned content. It analyzes your questions and, using search algorithms and AI, provides precise and contextualized answers, without the need for an internet connection.
+- Content Learning: The application extracts information from text files in your personal library and employs advanced Natural Language Processing (NLP) techniques to learn and store relevant information, all offline.
+- Content Query: The application allows for asking questions about the learned content. It analyzes your questions and, using search algorithms and AI, provides precise and contextualized answers, without the need for an internet connection.
+
+### How to Use
+```
+make
+go run main.go
+```
+
+### Limitations
+- Only tested on macOS with M1.
+- Only tested with GPT2 Portuguese model.
 
 ### Feature Roadmap
 - Extraction of content from text files: The application will be able to read and extract information from text files (e.g., PDF, TXT, DOCX) in your personal library.
@@ -18,7 +28,6 @@ Content Query: The application allows for asking questions about the learned con
 - Graphical User Interface: The application will present an intuitive and easy-to-use graphical interface, developed with the Wails framework.
 
 ### Technologies Used
-
 - ggml.cpp: Tensor Library for machine learning.
 - GPT2 (Word Embeddings): Used for context-based indexing.
 - Pinecone: Vector database for contextual search.
