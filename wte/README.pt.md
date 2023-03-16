@@ -4,7 +4,7 @@ Português | English (README.md)
 
 ### Descrição
 
-O script `gpt2_wte.py` tem como objetivo extrair os weights (pesos) de Word Token Embeddings (WTE) do modelo GPT-2 criando um modelo ggml otimizado com menos de 200MB. 
+O script `gpt2_wte.py` tem como objetivo extrair os weights (pesos) de Word Token Embeddings (WTE) do modelo GPT-2 criando um modelo ggml otimizado com menos de 80MB. 
 Os embeddings são representações vetoriais que são utilizados como entrada no modelo GPT-2.
 Ao extrair esses embeddings de um texto, podemos armazenálos em um banco de dados vetorial para realizar semanticas.
 
