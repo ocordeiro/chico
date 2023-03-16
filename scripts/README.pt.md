@@ -1,11 +1,15 @@
-## GPT-2 Word Token Embeddings (WTE) Extractor
+Português | English (README.md)
 
-### Description
-O script `gpt2_wte.py` aims to extract the weights of Word Token Embeddings (WTE) from the GPT-2 model, creating an optimized ggml model with less than 200MB.
-The embeddings are vector representations that are used as input in the GPT-2 model.
-By extracting these embeddings from a text, we can store them in a vector database for performing semantics.
+## Word Token Embeddings (WTE) para GPT-2
 
-### How to use
+### Descrição
+
+O script `gpt2_wte.py` tem como objetivo extrair os weights (pesos) de Word Token Embeddings (WTE) do modelo GPT-2 criando um modelo ggml otimizado com menos de 200MB. 
+Os embeddings são representações vetoriais que são utilizados como entrada no modelo GPT-2.
+Ao extrair esses embeddings de um texto, podemos armazenálos em um banco de dados vetorial para realizar semanticas.
+
+#### Como usar
 ```bash
 pip install transformers numpy
-python gpt2_wte.py```
+python gpt2_wte.py
+```
