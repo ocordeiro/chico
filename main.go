@@ -11,7 +11,9 @@ import (
 //export goCallback
 func goCallback(embeddings *C.float, size C.int) {
 
-	floatArr := (*[1 << 30]float32)(unsafe.Pointer(embeddings))[0:int(size)]
+	floatArr := (*[1 << 30]float32)(unsafe.Pointer(embeddings))[0:size]
+
+	s := int(size)
 
 	for i := 0; i < int(size); i++ {
 		fmt.Println(floatArr[i])
