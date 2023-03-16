@@ -270,7 +270,7 @@ void print_embd(const ggml_tensor * inpL, const int n_embd, GoCallback callback)
     //    printf("%f, ", ((float *)inpL->data)[i]);
     //}
 
-    callback((char *)"Emebdding: [");
+    //callback((char *)"Emebdding: [");
 
     // print first 4 
     for (int i = 0; i < 4; ++i) {
@@ -352,6 +352,12 @@ bool gpt2_eval(
     
     print_embd(inpL, n_embd, callback);
 
+    auto embeddings = (float *)inpL->data;
+
+
+    callback(embeddings);
+
+
     if (mem_per_token == 0) {
         mem_per_token = ggml_used_mem(ctx0)/N;
     }
@@ -425,7 +431,7 @@ extern "C" {
             }
         }
 
-        callback((char *)"Starting...");
+        //callback((char *)"Starting...");
 
         proccess_text(text, callback);
     }

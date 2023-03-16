@@ -1,4 +1,7 @@
-all: ggml.o libgpt.so
+all: clean ggml.o libgpt.so
+
+clean:
+	rm -f *.o *.so
 
 ggml.o: ggml.c ggml.h
 	$(CC) -c ggml.c -o ggml.o

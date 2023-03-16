@@ -1,3 +1,4 @@
+.vscode
 libgpt.so
 ggml.o
 wte/*.bin
