@@ -34,6 +34,6 @@ go run main.go
 
 - ggml.cpp: Biblioteca Tensor para aprendizado de máquina.
 - GPT2 (Word Embeddings): Utilizado para indexação baseada em contexto.
-- Sqlite3 vss: Sqlite3 with vector extension for contextual search.
+- Sqlite3 vss: Sqlite3 Com extensão vss para busca contextual.
 - LLaMA: IA do Facebook LLaMA para geração de respostas às perguntas dos usuários.
 - Wails: Framework para desenvolvimento da interface gráfica do aplicativo.
