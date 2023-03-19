@@ -35,19 +35,19 @@ func main() {
 	embeddings := jsonEmbeddings(document)
 	insertDocument(document, embeddings)
 
-	document = "Quero comprar uma moto"
+	document = "O GPS não funciona"
 	embeddings = jsonEmbeddings(document)
 	insertDocument(document, embeddings)
 
 	indexDocuments()
 
-	document = "Quero comprar uma toyota"
+	document = "Quer vender o carro?"
 	embeddings = jsonEmbeddings(document)
+	search(embeddings)
 
-	search()
 	//list()
-	listIndex()
-	countIndexes()
+	//listIndex()
+	//countIndexes()
 }
 
 func jsonEmbeddings(text string) string {
@@ -132,10 +132,9 @@ func countIndexes() {
 		return
 	}
 	log.Printf("Count: %v", count)
-
 }
 
-func search() {
+func search(embeddings string) {
 
 	fmt.Println("Search")
 
@@ -144,12 +143,12 @@ func search() {
 	where vss_search(
 		embeddings,
 		vss_search_params(
-			vector_from_blob((select embeddings from documents where rowid = 1)),
+			vector_from_json(?),
 			128
 		)
 	)`
 
-	rows, err := db.Query(stml)
+	rows, err := db.Query(stml, embeddings)
 	if err != nil {
 		log.Printf("%q: %s\n", err, stml)
 		return
