@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"log"
 	"path"
 	"unsafe"
@@ -30,19 +31,33 @@ func main() {
 	db = initDatabase()
 	defer db.Close()
 
-	document := "Quero comprar um carros."
+	document := "Quero comprar um carros"
+	embeddings := jsonEmbeddings(document)
+	insertDocument(document, embeddings)
 
-	embeddings := C.get_embeddings(C.CString(document))
+	document = "Quero comprar uma moto"
+	embeddings = jsonEmbeddings(document)
+	insertDocument(document, embeddings)
+
+	indexDocuments()
+
+	document = "Quero comprar uma toyota"
+	embeddings = jsonEmbeddings(document)
+
+	search()
+	//list()
+	listIndex()
+	countIndexes()
+}
+
+func jsonEmbeddings(text string) string {
+	embeddings := C.get_embeddings(C.CString(text))
 
 	floatArr := (*[768]float32)(unsafe.Pointer(embeddings))[:]
 
 	jsonData, _ := json.Marshal(floatArr)
 
-	insertDocument(document, string(jsonData))
-
-	indexDocuments()
-
-	getIndexes()
+	return string(jsonData)
 }
 
 func initDatabase() *sql.DB {
@@ -72,7 +87,7 @@ func initDatabase() *sql.DB {
 		);
 		CREATE VIRTUAL TABLE IF NOT EXISTS 
 		vss_documents USING vss0(
-			embeddings(768)
+			embeddings(768) with "Flat,IDMap2"
 		);`
 	_, err = db.Exec(createDb)
 	if err != nil {
@@ -107,7 +122,7 @@ func indexDocuments() {
 	}
 }
 
-func getIndexes() {
+func countIndexes() {
 	get := `select count(*) from vss_documents`
 	var count int
 
@@ -117,5 +132,89 @@ func getIndexes() {
 		return
 	}
 	log.Printf("Count: %v", count)
+
+}
+
+func search() {
+
+	fmt.Println("Search")
+
+	stml := `select rowid, distance
+	from vss_documents
+	where vss_search(
+		embeddings,
+		vss_search_params(
+			vector_from_blob((select embeddings from documents where rowid = 1)),
+			128
+		)
+	)`
+
+	rows, err := db.Query(stml)
+	if err != nil {
+		log.Printf("%q: %s\n", err, stml)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var rowid int
+		var distance float64
+		err = rows.Scan(&rowid, &distance)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Rowid: %v, Distance: %v", rowid, distance)
+	}
+
+}
+
+func list() {
+
+	fmt.Println("List")
+
+	stml := `select rowid, content, embeddings from documents`
+
+	rows, err := db.Query(stml)
+	if err != nil {
+		log.Printf("%q: %s\n", err, stml)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var rowid int
+		var content string
+		var embeddings []byte
+		err = rows.Scan(&rowid, &content, &embeddings)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Rowid: %v, Content: %v, Embeddings: %v", rowid, content, embeddings)
+	}
+
+}
+
+func listIndex() {
+
+	fmt.Println("List Index")
+
+	stmt := `select rowid, embeddings from vss_documents`
+
+	rows, err := db.Query(stmt)
+	if err != nil {
+		log.Printf("%q: %s\n", err, stmt)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var rowid int
+		var embeddings []byte
+		err = rows.Scan(&rowid, &embeddings)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Rowid: %v, Embeddings: %v", rowid, embeddings)
+	}
 
 }
