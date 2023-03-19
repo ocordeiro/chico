@@ -6,7 +6,7 @@ import "C"
 import (
 	"database/sql"
 	"log"
-	"unsafe"
+	"path"
 
 	"github.com/mattn/go-sqlite3"
 )
@@ -14,42 +14,36 @@ import (
 //export goCallback
 func goCallback(embeddings *C.float, size C.int) {
 
-	floatArr := (*[1 << 30]float32)(unsafe.Pointer(embeddings))[0:size]
-	//to BLOB
+	//floatArr := (*[1 << 30]float32)(unsafe.Pointer(embeddings))[0:size]
 
-	blob := make([]byte, len(floatArr)*4)
-	for i, v := range floatArr {
-		blob[i*4] = byte(v)
-	}
-
-	_, err := db.Exec(`INSERT INTO documents(embeddings) VALUES (?)`, blob)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = db.Exec(`INSERT INTO vss_documents(rowid,embeddings) 
-		SELECT rowid,embeddings FROM documents
-		`)
-	if err != nil {
-		log.Fatal(err)
-	}
+	println(size)
 }
 
 var db *sql.DB
 
 func main() {
 
+	db = initDatabase()
+	defer db.Close()
+
+	C.get_embeddings(C.CString("Joa tilapia"), C.GoCallback(C.goCallback))
+}
+
+func initDatabase() *sql.DB {
+
+	sqlitePath := "sqlite-vss"
+
 	sql.Register("sqlite3_with_extensions",
 		&sqlite3.SQLiteDriver{
 			Extensions: []string{
-				"vector0",
-				"vss0",
+				path.Join(sqlitePath, "vector0"),
+				path.Join(sqlitePath, "vss0"),
 			},
 		})
 
 	var err error
-	db, err = sql.Open("sqlite3_with_extensions", "vector.db")
+
+	db, err = sql.Open("sqlite3_with_extensions", path.Join(sqlitePath, "vector.db"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,10 +61,19 @@ func main() {
 	_, err = db.Exec(createDb)
 	if err != nil {
 		log.Printf("%q: %s\n", err, createDb)
-		return
+		return nil
 	}
 
-	defer db.Close()
+	return db
+}
 
-	C.get_embeddings(C.CString("Joa tilapia"), C.GoCallback(C.goCallback))
+func insertDocument(content string, embeddings []float32) {
+	insert := `
+		INSERT INTO documents (content, embeddings) 
+		VALUES (?, ?);`
+	_, err := db.Exec(insert, content, embeddings)
+	if err != nil {
+		log.Printf("%q: %s\n", err, insert)
+		return
+	}
 }

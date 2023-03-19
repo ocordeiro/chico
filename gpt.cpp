@@ -344,42 +344,27 @@ std::vector<float> proccess_text(std::string text, GoCallback callback) {
     printf("%s: number of tokens in prompt = %zu\n", __func__, embd_inp.size());
     printf("\n");
 
-    // submit the input prompt token-by-token
-    // this reduces the memory usage during inference, at the cost of a bit of speed at the beginning
+    // submit the input prompt tokens all at once
+    // this increases the memory usage during inference, but improves the speed
     std::vector<gpt_vocab::id> embd;
 
     // determine the required inference memory per token:
     size_t mem_per_token = 0;
 
-    for (int i = 0; i < embd_inp.size(); i++) {
+    // predict
+    if (embd_inp.size() > 0) {
+        const int64_t t_start_us = ggml_time_us();
 
-        printf("%s: token = %s\n", __func__, vocab.id_to_token[embd_inp[i]].c_str());
-
-        embd.clear();
-        embd.push_back(embd_inp[i]);
-        
-        // predict
-        if (embd.size() > 0) {
-            const int64_t t_start_us = ggml_time_us();
-
-            if (!gpt2_eval(model, 4, n_past, embd, mem_per_token, callback)) {
-                printf("Failed to predict\n");
-                return {};
-            }
-
-            t_predict_us += ggml_time_us() - t_start_us;
+        if (!gpt2_eval(model, 4, n_past, embd_inp, mem_per_token, callback)) {
+            printf("Failed to predict\n");
+            return {};
         }
-        n_past++;
-        
-        printf("\n");
 
-        fflush(stdout);
-
-        // end of text token
-        if (embd.back() == 50256) {
-            break;
-        }
+        t_predict_us += ggml_time_us() - t_start_us;
     }
+
+    printf("\n");
+    fflush(stdout);
 
     return {};
 }
