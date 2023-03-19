@@ -1,7 +1,5 @@
 #include "gpt.h"
-
 #include "ggml.h"
-
 #include "utils.h"
 
 #include <cassert>
@@ -35,7 +33,7 @@ struct gpt2_model {
     struct ggml_tensor * ln_f_g;
     struct ggml_tensor * ln_f_b;
 
-    struct ggml_tensor * wte; // position embedding
+    struct ggml_tensor * wte; // embedding
 
     std::vector<gpt2_layer> layers;
 
@@ -260,46 +258,22 @@ bool gpt2_model_load(const std::string & fname, gpt2_model & model, gpt_vocab & 
     return true;
 }
 
-// evaluate the transformer
-//
-//   - model:     the model
-//   - n_threads: number of threads to use
-//   - n_past:    the context size so far
-//   - embd_inp:  the embeddings of the tokens in the context
-//   - embd_w:    the predicted logits for the next token
-//
-bool gpt2_eval(
+float* gpt2_embeddings(
+        std::string text,
         const gpt2_model & model,
-        const int n_threads,
-        const int n_past,
-        const std::vector<gpt_vocab::id> & embd_inp,
-              size_t                     & mem_per_token,
-        GoCallback callback) {
+        const int n_threads) {
+
+    std::vector<gpt_vocab::id> embd_inp = ::gpt_tokenize(vocab, text);
+    
+    size_t mem_per_token = 0;
     const int N = embd_inp.size();
 
     const auto & hparams = model.hparams;
 
     const int n_embd  = hparams.n_embd;
-    const int n_layer = hparams.n_layer;
-    const int n_ctx   = hparams.n_ctx;
-    const int n_head  = hparams.n_head;
-    const int n_vocab = hparams.n_vocab;
 
     static size_t buf_size = 256u*1024*1024;
     static void * buf = malloc(buf_size);
-
-    if (mem_per_token > 0 && mem_per_token*N > buf_size) {
-        const size_t buf_size_new = 1.1*(mem_per_token*N); // add 10% to account for ggml object overhead
-        //printf("\n%s: reallocating buffer from %zu to %zu bytes\n", __func__, buf_size, buf_size_new);
-
-        // reallocate
-        buf_size = buf_size_new;
-        buf = realloc(buf, buf_size);
-        if (buf == nullptr) {
-            fprintf(stderr, "%s: failed to allocate %zu bytes\n", __func__, buf_size);
-            return false;
-        }
-    }
 
     struct ggml_init_params params = {
         .mem_size   = buf_size,
@@ -318,67 +292,19 @@ bool gpt2_eval(
     ggml_build_forward_expand(&gf, inpL);
     ggml_graph_compute       (ctx0, &gf);
 
-    auto embeddings = (float *)inpL->data;
-
-    callback(embeddings, n_embd);
-
-    if (mem_per_token == 0) {
-        mem_per_token = ggml_used_mem(ctx0)/N;
-    }
-
     ggml_free(ctx0);
 
-    return true;
-}
-
-std::vector<float> proccess_text(std::string text, GoCallback callback) {
-
-    int n_past = 0;
-
-    int64_t t_sample_us  = 0;
-    int64_t t_predict_us = 0;
-
-    // tokenize the prompt
-    std::vector<gpt_vocab::id> embd_inp = ::gpt_tokenize(vocab, text);
-
-    printf("%s: number of tokens in prompt = %zu\n", __func__, embd_inp.size());
-    printf("\n");
-
-    // submit the input prompt tokens all at once
-    // this increases the memory usage during inference, but improves the speed
-    std::vector<gpt_vocab::id> embd;
-
-    // determine the required inference memory per token:
-    size_t mem_per_token = 0;
-
-    // predict
-    if (embd_inp.size() > 0) {
-        const int64_t t_start_us = ggml_time_us();
-
-        if (!gpt2_eval(model, 4, n_past, embd_inp, mem_per_token, callback)) {
-            printf("Failed to predict\n");
-            return {};
-        }
-
-        t_predict_us += ggml_time_us() - t_start_us;
-    }
-
-    printf("\n");
-    fflush(stdout);
-
-    return {};
+    return (float*)inpL->data;
 }
 
 extern "C" {
-
-    void get_embeddings(char *text, GoCallback callback) {
+    float* get_embeddings(char *text) {
         if (!model.wte) {
             if (!gpt2_model_load("wte/ggml-gpt-wte.bin", model, vocab)) {
                 printf("Failed to load model\n");
-                return;
+                return NULL;
             }
         }
-
-        proccess_text(text, callback);
+        return gpt2_embeddings(text, model, 4);
     }
 }

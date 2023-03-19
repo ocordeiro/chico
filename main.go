@@ -4,29 +4,45 @@ package main
 // #include "gpt.h"
 import "C"
 import (
+	"bytes"
 	"database/sql"
+	"encoding/binary"
+	"encoding/json"
 	"log"
 	"path"
+	"unsafe"
 
 	"github.com/mattn/go-sqlite3"
 )
 
-//export goCallback
-func goCallback(embeddings *C.float, size C.int) {
-
-	//floatArr := (*[1 << 30]float32)(unsafe.Pointer(embeddings))[0:size]
-
-	println(size)
-}
-
 var db *sql.DB
+
+func float32SliceToByteSlice(floats []float32) []byte {
+	buf := new(bytes.Buffer)
+	for _, f := range floats {
+		binary.Write(buf, binary.LittleEndian, f)
+	}
+	return buf.Bytes()
+}
 
 func main() {
 
 	db = initDatabase()
 	defer db.Close()
 
-	C.get_embeddings(C.CString("Joa tilapia"), C.GoCallback(C.goCallback))
+	document := "Quero comprar um carros."
+
+	embeddings := C.get_embeddings(C.CString(document))
+
+	floatArr := (*[768]float32)(unsafe.Pointer(embeddings))[:]
+
+	jsonData, _ := json.Marshal(floatArr)
+
+	insertDocument(document, string(jsonData))
+
+	indexDocuments()
+
+	getIndexes()
 }
 
 func initDatabase() *sql.DB {
@@ -67,13 +83,39 @@ func initDatabase() *sql.DB {
 	return db
 }
 
-func insertDocument(content string, embeddings []float32) {
+func insertDocument(content string, embeddings string) {
+
 	insert := `
 		INSERT INTO documents (content, embeddings) 
-		VALUES (?, ?);`
+		VALUES (?, vector_to_blob(vector_from_json(?)))`
 	_, err := db.Exec(insert, content, embeddings)
 	if err != nil {
-		log.Printf("%q: %s\n", err, insert)
+		log.Printf("%q: 2 %s\n", err, insert)
 		return
 	}
+}
+
+func indexDocuments() {
+	index := `
+		INSERT INTO vss_documents (rowid, embeddings) 
+		SELECT rowid, embeddings FROM documents
+		WHERE rowid NOT IN (SELECT rowid FROM vss_documents);`
+	_, err := db.Exec(index)
+	if err != nil {
+		log.Printf("%q: %s\n", err, index)
+		return
+	}
+}
+
+func getIndexes() {
+	get := `select count(*) from vss_documents`
+	var count int
+
+	err := db.QueryRow(get).Scan(&count)
+	if err != nil {
+		log.Printf("%q: %s\n", err, get)
+		return
+	}
+	log.Printf("Count: %v", count)
+
 }

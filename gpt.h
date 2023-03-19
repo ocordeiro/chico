@@ -3,10 +3,7 @@
 extern "C" {
 #endif
 
-typedef void (*GoCallback)(float* embeddings, int size);
-void goCallback(float* embeddings, int size);
-
-void get_embeddings(char* text, GoCallback callback);
+float* get_embeddings(char* text);
 
 #ifdef __cplusplus
 }  // extern "C"
