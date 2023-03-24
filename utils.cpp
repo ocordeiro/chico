@@ -57,25 +57,6 @@ void gpt_print_usage(int argc, char ** argv, const gpt_params & params) {
     fprintf(stderr, "\n");
 }
 
-std::string gpt_random_prompt(std::mt19937 & rng) {
-    const int r = rng() % 10;
-    switch (r) {
-        case 0: return "So";
-        case 1: return "Once upon a time";
-        case 2: return "When";
-        case 3: return "The";
-        case 4: return "After";
-        case 5: return "If";
-        case 6: return "import";
-        case 7: return "He";
-        case 8: return "She";
-        case 9: return "They";
-        default: return "To";
-    }
-
-    return "The";
-}
-
 void replace(std::string & str, const std::string & needle, const std::string & replacement) {
     size_t pos = 0;
     while ((pos = str.find(needle, pos)) != std::string::npos) {
@@ -328,3 +309,32 @@ gpt_vocab::id gpt_sample_top_k_top_p(
 
     return logits_id[idx].second;
 }
+
+std::vector<std::vector<gpt_vocab::id>> split_sentences(const std::vector<gpt_vocab::id>& tokens, const gpt_vocab& vocab) {
+    const gpt_vocab::id period_token = gpt_tokenize(vocab, ".")[0];
+    const gpt_vocab::id question_token = gpt_tokenize(vocab, "?")[0];
+    const gpt_vocab::id exclamation_token = gpt_tokenize(vocab, "!")[0];
+    const int max_tokens = 100;
+
+    std::vector<std::vector<gpt_vocab::id>> result;
+    std::vector<gpt_vocab::id> current_sentence;
+
+    for (const auto& token : tokens) {
+        current_sentence.push_back(token);
+
+        if (current_sentence.size() == max_tokens) {
+            result.push_back(current_sentence);
+            current_sentence.clear();
+        } else if (token == period_token || token == question_token || token == exclamation_token) {
+            result.push_back(current_sentence);
+            current_sentence.clear();
+        }
+    }
+
+    if (!current_sentence.empty()) {
+        result.push_back(current_sentence);
+    }
+
+    return result;
+}
+

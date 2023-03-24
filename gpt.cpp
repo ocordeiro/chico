@@ -264,7 +264,15 @@ float* gpt2_embeddings(
         const int n_threads) {
 
     std::vector<gpt_vocab::id> embd_inp = ::gpt_tokenize(vocab, text);
-    
+    std::vector<std::vector<gpt_vocab::id>> sentences = ::split_sentences(embd_inp, vocab);
+
+    for (auto & sentence : sentences) {
+        for (auto & token : sentence) {
+            printf("%s", vocab.id_to_token[token].c_str());
+        }
+        printf(" - %lu tokens\n", sentence.size());
+    }
+
     size_t mem_per_token = 0;
     const int N = embd_inp.size();
 

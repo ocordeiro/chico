@@ -41,7 +41,10 @@ func main() {
 
 	indexDocuments()
 
-	document = "Quer vender o carro?"
+	document = `A vida é uma jornada fascinante cheia de altos e baixos, alegrias e tristezas, conquistas e fracassos. Cada um de nós tem sua própria história, suas próprias experiências e suas próprias perspectivas. Às vezes, a vida pode parecer um labirinto complexo, com inúmeras opções e caminhos a seguir. Mas, apesar de todas as incertezas e desafios, a vida é uma dádiva preciosa que devemos valorizar e apreciar.
+	A maneira como vivemos nossas vidas pode ser influenciada por muitos fatores, como nossa família, amigos, educação, cultura, religião e experiências passadas. É importante reconhecer que somos seres sociais e que nossa interação com os outros pode ter um impacto significativo em nossas vidas. Portanto, é fundamental cultivar relacionamentos saudáveis e positivos que nos apoiam e nos ajudam a crescer como indivíduos.
+	Além disso, a educação desempenha um papel crucial em nossas vidas, permitindo-nos desenvolver habilidades e conhecimentos que nos ajudam a enfrentar os desafios que encontramos ao longo do caminho. Através da educação, podemos descobrir nossas paixões e interesses, além de aprender a lidar com a diversidade cultural e a complexidade do mundo em que vivemos.
+	Outro aspecto importante da vida é a saúde. A saúde física e mental é fundamental para o nosso bem-estar e felicidade. É importante cuidar do nosso corpo através de uma alimentação saudável, exercícios regulares e sono adequado. Além disso, devemos cuidar da nossa saúde mental, aprendendo a lidar com o estresse, a ansiedade e a depressão, e buscando ajuda profissional quando necessário.`
 	embeddings = jsonEmbeddings(document)
 	search(embeddings)
 

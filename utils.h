@@ -80,5 +80,13 @@ gpt_vocab::id gpt_sample_top_k_top_p(
         int    top_k,
         double top_p,
         double temp,
-        std::mt19937 & rng);
+        std::mt19937 & rng
+);
+
+
+std::vector<std::vector<gpt_vocab::id>> split_sentences(
+    const std::vector<gpt_vocab::id> & tokens,
+    const gpt_vocab & vocab
+);
+
 
