@@ -9,7 +9,10 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
+	"os"
 	"path"
 	"unsafe"
 
@@ -26,25 +29,99 @@ func float32SliceToByteSlice(floats []float32) []byte {
 	return buf.Bytes()
 }
 
+func embeddingsRequest(prompt string) string {
+	// Definir a URL da API da OpenAI
+	url := "https://api.openai.com/v1/embeddings"
+
+	// Definir os parâmetros da requisição
+
+	params := map[string]interface{}{
+		"model": "text-embedding-ada-002",
+		"input": prompt,
+	}
+
+	reqBody, err := json.Marshal(params)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqBody))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("OPENAI_API_KEY"))
+
+	// Fazer a requisição
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer resp.Body.Close()
+
+	// Ler a resposta
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var result map[string]interface{}
+	json.Unmarshal(respBody, &result)
+
+	/*
+			{
+		  "object": "list",
+		  "data": [
+		    {
+		      "object": "embedding",
+		      "embedding": [
+		        0.0023064255,
+		        -0.009327292,
+		        .... (1536 floats total for ada-002)
+		        -0.0028842222,
+		      ],
+		      "index": 0
+		    }
+		  ],
+		  "model": "text-embedding-ada-002",
+		  "usage": {
+		    "prompt_tokens": 8,
+		    "total_tokens": 8
+		  }
+		}
+	*/
+
+	embeddings := result["data"].([]interface{})[0].(map[string]interface{})["embedding"].([]interface{})
+
+	jsonData, _ := json.Marshal(embeddings)
+
+	return string(jsonData)
+
+}
+
 func main() {
 
 	db = initDatabase()
 	defer db.Close()
 
-	document := "Quero comprar um carros"
+	document := "Devemo ignorar os problemas e seguir em frente"
 	embeddings := jsonEmbeddings(document)
 	insertDocument(document, embeddings)
 
-	document = "O GPS não funciona"
+	document = "Um carro é um veículo para transporte de pessoas ou coisas"
+	embeddings = jsonEmbeddings(document)
+	insertDocument(document, embeddings)
+
+	document = "A soma dos ângulos internos de um triângulo é igual a 180 graus"
 	embeddings = jsonEmbeddings(document)
 	insertDocument(document, embeddings)
 
 	indexDocuments()
 
-	document = `A vida é uma jornada fascinante cheia de altos e baixos, alegrias e tristezas, conquistas e fracassos. Cada um de nós tem sua própria história, suas próprias experiências e suas próprias perspectivas. Às vezes, a vida pode parecer um labirinto complexo, com inúmeras opções e caminhos a seguir. Mas, apesar de todas as incertezas e desafios, a vida é uma dádiva preciosa que devemos valorizar e apreciar.
-	A maneira como vivemos nossas vidas pode ser influenciada por muitos fatores, como nossa família, amigos, educação, cultura, religião e experiências passadas. É importante reconhecer que somos seres sociais e que nossa interação com os outros pode ter um impacto significativo em nossas vidas. Portanto, é fundamental cultivar relacionamentos saudáveis e positivos que nos apoiam e nos ajudam a crescer como indivíduos.
-	Além disso, a educação desempenha um papel crucial em nossas vidas, permitindo-nos desenvolver habilidades e conhecimentos que nos ajudam a enfrentar os desafios que encontramos ao longo do caminho. Através da educação, podemos descobrir nossas paixões e interesses, além de aprender a lidar com a diversidade cultural e a complexidade do mundo em que vivemos.
-	Outro aspecto importante da vida é a saúde. A saúde física e mental é fundamental para o nosso bem-estar e felicidade. É importante cuidar do nosso corpo através de uma alimentação saudável, exercícios regulares e sono adequado. Além disso, devemos cuidar da nossa saúde mental, aprendendo a lidar com o estresse, a ansiedade e a depressão, e buscando ajuda profissional quando necessário.`
+	document = `Os problemas são para serem ignorados`
 	embeddings = jsonEmbeddings(document)
 	search(embeddings)
 
@@ -81,6 +158,9 @@ func initDatabase() *sql.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// OpenAI: 1536
+	// GPT: 768
 
 	createDb := `
 		CREATE TABLE IF NOT EXISTS documents (
