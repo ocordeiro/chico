@@ -107,21 +107,29 @@ func main() {
 	db = initDatabase()
 	defer db.Close()
 
-	document := "Devemo ignorar os problemas e seguir em frente"
+	document := "Carro é mesmo que uma família para sustentar mas é ótima para viagens"
 	embeddings := jsonEmbeddings(document)
 	insertDocument(document, embeddings)
 
-	document = "Um carro é um veículo para transporte de pessoas ou coisas"
+	document = "Treinamento: Nessa fase, o modelo GPT-2 é treinado com um conjunto de dados de entrada. Durante o treinamento, o modelo ajusta seus parâmetros para melhor se adequar aos dados de entrada, aprendendo a gerar texto coerente e relevante."
 	embeddings = jsonEmbeddings(document)
 	insertDocument(document, embeddings)
 
-	document = "A soma dos ângulos internos de um triângulo é igual a 180 graus"
+	document = "Inferência: Nessa fase, o modelo treinado é usado para gerar texto com base em uma entrada de texto inicial. O GPT-2 é capaz de prever a próxima palavra ou conjunto de palavras, levando em consideração o contexto do texto de entrada."
 	embeddings = jsonEmbeddings(document)
 	insertDocument(document, embeddings)
 
 	indexDocuments()
 
-	document = `Os problemas são para serem ignorados`
+	document = `Receitas veganas fáceis de fazer em casa`
+	embeddings = jsonEmbeddings(document)
+	search(embeddings)
+
+	document = `Queria ir para joão pessoa?`
+	embeddings = jsonEmbeddings(document)
+	search(embeddings)
+
+	document = `Ciência de dados e aprendizado de máquina`
 	embeddings = jsonEmbeddings(document)
 	search(embeddings)
 

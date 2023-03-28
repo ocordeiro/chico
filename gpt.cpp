@@ -635,6 +635,8 @@ float* gpt2_eval(
         inpL = ggml_add(ctx0, cur, inpFF);
     }
 
+    std::vector<float> embedding_representation;
+
     // norm
     {
         // [ 768, N]
@@ -647,6 +649,9 @@ float* gpt2_eval(
                     ggml_repeat(ctx0, model.ln_f_g, inpL),
                     inpL),
                 ggml_repeat(ctx0, model.ln_f_b, inpL));
+
+        embedding_representation.resize(n_embd*N);
+        memcpy(embedding_representation.data(), ggml_get_data(inpL), sizeof(float)*n_embd*N);
     }
 
     // inpL = WTE * inpL
@@ -680,7 +685,12 @@ float* gpt2_eval(
 
     ggml_free(ctx0);
 
-    return (float*)inpL->data;
+    
+    // copy embedding_representation
+    float *final_representation = (float *) malloc(sizeof(float) * n_vocab);
+    memcpy(final_representation, embedding_representation.data(), sizeof(float) * n_vocab);
+
+    return final_representation;
 }
 
 float* run(char *text) {
@@ -753,8 +763,6 @@ float* run(char *text) {
     for (int i = embd.size(); i < embd_inp.size() + params.n_predict; i++) {
         // predict
         if (embd.size() > 0) {
-
-            printf("%lu/%lu\n", i, embd_inp.size());
 
             const int64_t t_start_us = ggml_time_us();
 
