@@ -67,13 +67,11 @@ struct gpt2_model {
     std::map<std::string, struct ggml_tensor *> tensors;
 };
 
+gpt_vocab vocab;
+gpt2_model model;
+
 void print_embeddings(float * embeddings, int n_embd = 768) {
      printf("wte = [");
-
-        // print all
-        //for (int i = 0; i < n_embd; ++i) { 
-        //    printf("%f, ", ((float *)inpL->data)[i]);
-        //}
 
         // print first 4 
         for (int i = 0; i < 4; ++i) {
@@ -693,7 +691,7 @@ float* gpt2_eval(
     return final_representation;
 }
 
-float* run(char *text) {
+float* run(char *text, gpt2_model & model, gpt_vocab & vocab) {
     const int64_t t_main_start_us = ggml_time_us();
 
     gpt_params params;
@@ -719,18 +717,17 @@ float* run(char *text) {
 
     int64_t t_load_us = 0;
 
-    gpt_vocab vocab;
-    gpt2_model model;
-
     // load the model
     {
         const int64_t t_start_us = ggml_time_us();
 
-        if (!gpt2_model_load(params.model, model, vocab)) {
-            fprintf(stderr, "%s: failed to load model from '%s'\n", __func__, params.model.c_str());
-            return 0;
+        // load the model if not already loaded
+        if ((model.tensors.size() == 0 || vocab.id_to_token.size() == 0) 
+                && !gpt2_model_load(params.model, model, vocab)) {
+                fprintf(stderr, "%s: failed to load model from '%s'\n", __func__, params.model.c_str());
+                return 0;
         }
-    
+        
 
         t_load_us = ggml_time_us() - t_start_us;
     }
@@ -817,8 +814,6 @@ float* run(char *text) {
         printf("%s:    total time = %8.2f ms\n", __func__, (t_main_end_us - t_main_start_us)/1000.0f);
     }
 
-    ggml_free(model.ctx);
-
     return embeddings;
 }
 
@@ -828,7 +823,7 @@ extern "C" {
         
         float *embeddings = NULL;
 
-        embeddings = run(text);
+        embeddings = run(text, model, vocab);
 
         return embeddings;
     }

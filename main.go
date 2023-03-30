@@ -9,10 +9,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
-	"os"
 	"path"
 	"unsafe"
 
@@ -27,79 +24,6 @@ func float32SliceToByteSlice(floats []float32) []byte {
 		binary.Write(buf, binary.LittleEndian, f)
 	}
 	return buf.Bytes()
-}
-
-func embeddingsRequest(prompt string) string {
-	// Definir a URL da API da OpenAI
-	url := "https://api.openai.com/v1/embeddings"
-
-	// Definir os parâmetros da requisição
-
-	params := map[string]interface{}{
-		"model": "text-embedding-ada-002",
-		"input": prompt,
-	}
-
-	reqBody, err := json.Marshal(params)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqBody))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("OPENAI_API_KEY"))
-
-	// Fazer a requisição
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer resp.Body.Close()
-
-	// Ler a resposta
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var result map[string]interface{}
-	json.Unmarshal(respBody, &result)
-
-	/*
-			{
-		  "object": "list",
-		  "data": [
-		    {
-		      "object": "embedding",
-		      "embedding": [
-		        0.0023064255,
-		        -0.009327292,
-		        .... (1536 floats total for ada-002)
-		        -0.0028842222,
-		      ],
-		      "index": 0
-		    }
-		  ],
-		  "model": "text-embedding-ada-002",
-		  "usage": {
-		    "prompt_tokens": 8,
-		    "total_tokens": 8
-		  }
-		}
-	*/
-
-	embeddings := result["data"].([]interface{})[0].(map[string]interface{})["embedding"].([]interface{})
-
-	jsonData, _ := json.Marshal(embeddings)
-
-	return string(jsonData)
-
 }
 
 func main() {
