@@ -3,3 +3,8 @@ libgpt.so
 ggml.o
 wte/*.bin
 vector.db
+
+# wails
+build/bin
+node_modules
+frontend/dist
